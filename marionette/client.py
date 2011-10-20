@@ -40,7 +40,11 @@ class MarionetteClient(object):
             to receive in response.
         """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((self.addr, self.port))
+        try:
+            self.sock.connect((self.addr, self.port))
+        except:
+            self.sock = None
+            raise
         hello = self.receive()
         self.traits = hello.get('traits')
         self.applicationType = hello.get('applicationType')

@@ -139,7 +139,10 @@ class TestServer(object):
                     self.accept_new_connection()
                 else:
                     # Received something on a client socket
-                    data = self.receive(sock)
+                    try:
+                        data = self.receive(sock)
+                    except:
+                        data = None
                     # Check to see if the peer socket closed
                     if data is None:
                         host,port = sock.getpeername()
@@ -154,3 +157,7 @@ class TestServer(object):
                             msg = 'command: %s' % json.dumps(data)
                         self.send(sock, msg)
 
+
+if __name__ == "__main__":
+    server = TestServer(2626)
+    server.run()
