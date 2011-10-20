@@ -8,6 +8,15 @@ class TestServer(object):
         process_command().
     """
 
+    TEST_URL = 'http://www.mozilla.org'
+    TEST_CURRENT_WINDOW = 'window1'
+    TEST_WINDOW_LIST = ['window1', 'window2', 'window3']
+    TEST_EXECUTE_RETURN_VALUE = 10
+    TEST_EXECUTE_SCRIPT = 'return 2 * 5;'
+    TEST_EXECUTE_SCRIPT_ARGS = 'testing'
+    TEST_FIND_ELEMENT = 'element1'
+    TEST_FIND_ELEMENTS = ['element1', 'element2', 'element3']
+
     def __init__(self, port):
         self.port = port
 
@@ -70,17 +79,17 @@ class TestServer(object):
             'deleteSession': { 'ok': True },
             'setScriptTimeout': { 'ok': True },
             'setSearchTimeout': { 'ok': True },
-            'getWindow': { 'value': 'window1' },
-            'getWindows': { 'values': ['window1', 'window2', 'window3'] },
+            'getWindow': { 'value': self.TEST_CURRENT_WINDOW },
+            'getWindows': { 'values': self.TEST_WINDOW_LIST },
             'closeWindow': { 'ok': True },
             'switchToWindow': { 'ok': True },
-            'getUrl' : { 'value': 'http://www.mozilla.org' },
+            'getUrl' : { 'value': self.TEST_URL },
             'goUrl': { 'ok': True },
             'goBack': { 'ok': True },
             'goForward': { 'ok': True },
             'refresh': { 'ok': True },
-            'executeScript': { 'value': 10 },
-            'executeAsyncScript': { 'value': 10 },
+            'executeScript': { 'value': self.TEST_EXECUTE_RETURN_VALUE },
+            'executeAsyncScript': { 'value': self.TEST_EXECUTE_RETURN_VALUE },
             'findElement': { 'value': 'element1' },
             'findElements': { 'values': ['element1', 'element2'] },
             'clickElement': { 'ok': True },
