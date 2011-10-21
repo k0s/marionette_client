@@ -16,7 +16,7 @@ class SeleniumRequestServer(BaseHTTPServer.HTTPServer):
 
 class SeleniumRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
-    pathRe = re.compile(r'/session/(.*?)/(.*)')
+    pathRe = re.compile(r'/session/(.*?)/((element/(.*?)/)?(.*))')
 
     def file_not_found(self):
         self.send_response(404)
@@ -44,19 +44,21 @@ class SeleniumRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def process_request(self):
         session = body = None
         path = self.path
+        element = None
         m = self.pathRe.match(self.path)
         if m:
             session = m.group(1)
-            path = '/%s' % m.group(2)
+            element = m.group(4)
+            path = '/%s' % m.group(5)
         content_len = self.headers.getheader('content-length')
         if content_len:
             body = json.loads(self.rfile.read(int(content_len)))
-        return path, body, session
+        return path, body, session, element
 
     def do_DELETE(self):
         print 'DELETE', self.path
 
-        path, body, session = self.process_request()
+        path, body, session, element = self.process_request()
 
         if path == '/window':
             assert(session)
@@ -68,7 +70,7 @@ class SeleniumRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
         print 'GET', self.path
 
-        path, body, session = self.process_request()
+        path, body, session, element = self.process_request()
 
         if path == '/status':
             self.send_JSON(data=self.server.marionette.status())
@@ -90,7 +92,7 @@ class SeleniumRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_POST(self):
         print 'POST', self.path
 
-        path, body, session = self.process_request()
+        path, body, session, element = self.process_request()
 
         if path == '/back':
             assert(session)
@@ -100,7 +102,12 @@ class SeleniumRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             # find element variants
             assert(session)
             self.send_JSON(session=session,
-                           value={'ELEMENT': str(self.server.marionette.find_element(body['using'], body['value']))})
+                           value={'ELEMENT': str(self.server.marionette.find_element(body['using'], body['value'], id=element))})
+        elif path == '/elements':
+            # find elements variants
+            assert(session)
+            self.send_JSON(session=session,
+                           value=[{'ELEMENT': str(x)} for x in self.server.marionette.find_elements(body['using'], body['value'])])
         elif path == '/execute':
             assert(session)
             if body['args']:

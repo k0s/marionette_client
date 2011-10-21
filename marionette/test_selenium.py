@@ -9,6 +9,39 @@ except:
 from selenium_proxy import SeleniumProxy
 from testserver import TestServer
 
+def test_find_element(driver, fn):
+    """ Test a find_element_by_FOO method of both the webdriver
+        and the WebElement class.  The former will return a WebElement which
+        should have a method of the same name, which should also return
+        a WebElement.
+    """
+    element = getattr(driver, fn)('foo')
+    assert(isinstance(element, WebElement))
+    assert(element.id == TestServer.TEST_FIND_ELEMENT)
+    child = getattr(element, fn)('foo')
+    assert(isinstance(child, WebElement))
+    assert(child.id == TestServer.TEST_FIND_ELEMENT)
+
+def test_find_elements(driver, fn):
+    """ Test a find_elements_by_FOO method of both the webdriver
+        and the WebElement class.  The former will return a list of 
+        WebElements, each of which should have a method of the same name,
+        and which in should turn should also return a list of WebElements.
+    """
+    elements = getattr(driver, fn)('foo')
+    # elements should be a list
+    assert(isinstance(elements, list))
+    # elements should match the TEST_FIND_ELEMENTS list
+    assert(map(lambda x: x.id, elements) == TestServer.TEST_FIND_ELEMENTS)
+    # Each member of elements should be a WebElement that has the same
+    # method, which should in turn return a list of WebElements when called.
+    for element in elements:
+        assert(isinstance(element, WebElement))
+        children = getattr(element, fn)('foo')
+        assert(isinstance(children, list))
+        assert(map(lambda x: x.id, children) == TestServer.TEST_FIND_ELEMENTS)
+        assert(len(filter(lambda x: not isinstance(x, WebElement), children)) == 0)
+
 if __name__ == '__main__':
     # start the test server on port 2626
     server = TestServer(2626)
@@ -44,32 +77,25 @@ if __name__ == '__main__':
     assert(TestServer.TEST_EXECUTE_RETURN_VALUE == driver.execute_async_script(TestServer.TEST_EXECUTE_SCRIPT,
                                                                                TestServer.TEST_EXECUTE_SCRIPT_ARGS))
 
-    # The return values for all find_element_XXX methods should be a WebElement
-    # object, which has an 'id' property that contains the element's ID.
-    element = driver.find_element_by_name('foo')
-    assert(isinstance(element, WebElement))
-    assert(element.id == TestServer.TEST_FIND_ELEMENT)
-    element = driver.find_element_by_id('foo')
-    assert(isinstance(element, WebElement))
-    assert(element.id == TestServer.TEST_FIND_ELEMENT)
-    element = driver.find_element_by_xpath('foo')
-    assert(isinstance(element, WebElement))
-    assert(element.id == TestServer.TEST_FIND_ELEMENT)
-    element = driver.find_element_by_link_text('foo')
-    assert(isinstance(element, WebElement))
-    assert(element.id == TestServer.TEST_FIND_ELEMENT)
-    element = driver.find_element_by_partial_link_text('foo')
-    assert(isinstance(element, WebElement))
-    assert(element.id == TestServer.TEST_FIND_ELEMENT)
-    element = driver.find_element_by_tag_name('foo')
-    assert(isinstance(element, WebElement))
-    assert(element.id == TestServer.TEST_FIND_ELEMENT)
-    element = driver.find_element_by_class_name('foo')
-    assert(isinstance(element, WebElement))
-    assert(element.id == TestServer.TEST_FIND_ELEMENT)
-    element = driver.find_element_by_css_selector('foo')
-    assert(isinstance(element, WebElement))
-    assert(element.id == TestServer.TEST_FIND_ELEMENT)
+    # test all the find_element_by_FOO methods
+    test_find_element(driver, 'find_element_by_name')
+    test_find_element(driver, 'find_element_by_id')
+    test_find_element(driver, 'find_element_by_xpath')
+    test_find_element(driver, 'find_element_by_link_text')
+    test_find_element(driver, 'find_element_by_partial_link_text')
+    test_find_element(driver, 'find_element_by_tag_name')
+    test_find_element(driver, 'find_element_by_class_name')
+    test_find_element(driver, 'find_element_by_css_selector')
+
+    # test all the find_elements_by_FOO methods
+    test_find_elements(driver, 'find_elements_by_name')
+    test_find_elements(driver, 'find_elements_by_id')
+    test_find_elements(driver, 'find_elements_by_xpath')
+    test_find_elements(driver, 'find_elements_by_link_text')
+    test_find_elements(driver, 'find_elements_by_partial_link_text')
+    test_find_elements(driver, 'find_elements_by_tag_name')
+    test_find_elements(driver, 'find_elements_by_class_name')
+    test_find_elements(driver, 'find_elements_by_css_selector')
 
     assert(driver.current_window_handle == TestServer.TEST_CURRENT_WINDOW)
     assert(driver.window_handles == TestServer.TEST_WINDOW_LIST)
