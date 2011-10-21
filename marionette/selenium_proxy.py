@@ -64,20 +64,23 @@ class SeleniumRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return path, body, session, element
 
     def do_DELETE(self):
-        print 'DELETE', self.path
+        try:
 
-        path, body, session, element = self.process_request()
+            path, body, session, element = self.process_request()
 
-        if path == '/session':
-            assert(session)
-            assert(self.server.marionette.delete_session())
-            self.send_JSON(session=session)
-        elif path == '/window':
-            assert(session)
-            assert(self.server.marionette.close_window())
-            self.send_JSON(session=session)
-        else:
-            self.file_not_found()
+            if path == '/session':
+                assert(session)
+                assert(self.server.marionette.delete_session())
+                self.send_JSON(session=session)
+            elif path == '/window':
+                assert(session)
+                assert(self.server.marionette.close_window())
+                self.send_JSON(session=session)
+            else:
+                self.file_not_found()
+
+        except:
+            self.server_error(traceback.format_exc())
 
     def do_GET(self):
         try:
@@ -143,85 +146,87 @@ class SeleniumRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.server_error(traceback.format_exc())
 
     def do_POST(self):
-        print 'POST', self.path
+        try:
 
-        path, body, session, element = self.process_request()
+            path, body, session, element = self.process_request()
 
-        if path == '/back':
-            assert(session)
-            assert(self.server.marionette.go_back())
-            self.send_JSON(session=session)
-        elif path == '/clear':
-            assert(session)
-            marionette_element = HTMLElement(self.server.marionette, element)
-            marionette_element.clear()
-            self.send_JSON(session=session)
-        elif path == '/click':
-            assert(session)
-            marionette_element = HTMLElement(self.server.marionette, element)
-            marionette_element.click()
-            self.send_JSON(session=session)
-        elif path == '/element':
-            # find element variants
-            assert(session)
-            self.send_JSON(session=session,
-                           value={'ELEMENT': str(self.server.marionette.find_element(body['using'], body['value'], id=element))})
-        elif path == '/elements':
-            # find elements variants
-            assert(session)
-            self.send_JSON(session=session,
-                           value=[{'ELEMENT': str(x)} for x in self.server.marionette.find_elements(body['using'], body['value'])])
-        elif path == '/execute':
-            assert(session)
-            if body['args']:
-                result = self.server.marionette.execute_script(body['script'], script_args=body['args'])
+            if path == '/back':
+                assert(session)
+                assert(self.server.marionette.go_back())
+                self.send_JSON(session=session)
+            elif path == '/clear':
+                assert(session)
+                marionette_element = HTMLElement(self.server.marionette, element)
+                marionette_element.clear()
+                self.send_JSON(session=session)
+            elif path == '/click':
+                assert(session)
+                marionette_element = HTMLElement(self.server.marionette, element)
+                marionette_element.click()
+                self.send_JSON(session=session)
+            elif path == '/element':
+                # find element variants
+                assert(session)
+                self.send_JSON(session=session,
+                               value={'ELEMENT': str(self.server.marionette.find_element(body['using'], body['value'], id=element))})
+            elif path == '/elements':
+                # find elements variants
+                assert(session)
+                self.send_JSON(session=session,
+                               value=[{'ELEMENT': str(x)} for x in self.server.marionette.find_elements(body['using'], body['value'])])
+            elif path == '/execute':
+                assert(session)
+                if body['args']:
+                    result = self.server.marionette.execute_script(body['script'], script_args=body['args'])
+                else:
+                    result = self.server.marionette.execute_script(body['script'])
+                self.send_JSON(session=session, value=result)
+            elif path == '/execute_async':
+                assert(session)
+                if body['args']:
+                    result = self.server.marionette.execute_async_script(body['script'], script_args=body['args'])
+                else:
+                    result = self.server.marionette.execute_async_script(body['script'])
+                self.send_JSON(session=session, value=result)
+            elif path == '/forward':
+                assert(session)
+                assert(self.server.marionette.go_forward())
+                self.send_JSON(session=session)
+            elif path == '/refresh':
+                assert(session)
+                assert(self.server.marionette.refresh())
+                self.send_JSON(session=session)
+            elif path == '/session':
+                session = self.server.marionette.start_session()
+                # 'value' is the browser capabilities, which we're ignoring for now
+                self.send_JSON(session=session, value={})
+            elif path == '/timeouts/async_script':
+                assert(session)
+                assert(self.server.marionette.set_script_timeout(body['ms']))
+                self.send_JSON(session=session)
+            elif path == '/timeouts/implicit_wait':
+                assert(session)
+                assert(self.server.marionette.set_search_timeout(body['ms']))
+                self.send_JSON(session=session)
+            elif path == '/url':
+                assert(session)
+                assert(self.server.marionette.navigate(body['url']))
+                self.send_JSON(session=session)
+            elif path == '/value':
+                assert(session)
+                keys = ''.join(body['value'])
+                marionette_element = HTMLElement(self.server.marionette, element)
+                assert(marionette_element.send_keys(keys))
+                self.send_JSON(session=session)
+            elif path == '/window':
+                assert(session)
+                assert(self.server.marionette.switch_window(body['name']))
+                self.send_JSON(session=session)
             else:
-                result = self.server.marionette.execute_script(body['script'])
-            self.send_JSON(session=session, value=result)
-        elif path == '/execute_async':
-            assert(session)
-            if body['args']:
-                result = self.server.marionette.execute_async_script(body['script'], script_args=body['args'])
-            else:
-                result = self.server.marionette.execute_async_script(body['script'])
-            self.send_JSON(session=session, value=result)
-        elif path == '/forward':
-            assert(session)
-            assert(self.server.marionette.go_forward())
-            self.send_JSON(session=session)
-        elif path == '/refresh':
-            assert(session)
-            assert(self.server.marionette.refresh())
-            self.send_JSON(session=session)
-        elif path == '/session':
-            session = self.server.marionette.start_session()
-            # 'value' is the browser capabilities, which we're ignoring for now
-            self.send_JSON(session=session, value={})
-        elif path == '/timeouts/async_script':
-            assert(session)
-            assert(self.server.marionette.set_script_timeout(body['ms']))
-            self.send_JSON(session=session)
-        elif path == '/timeouts/implicit_wait':
-            assert(session)
-            assert(self.server.marionette.set_search_timeout(body['ms']))
-            self.send_JSON(session=session)
-        elif path == '/url':
-            assert(session)
-            assert(self.server.marionette.navigate(body['url']))
-            self.send_JSON(session=session)
-        elif path == '/value':
-            assert(session)
-            keys = ''.join(body['value'])
-            marionette_element = HTMLElement(self.server.marionette, element)
-            assert(marionette_element.send_keys(keys))
-            self.send_JSON(session=session)
-        elif path == '/window':
-            assert(session)
-            assert(self.server.marionette.switch_window(body['name']))
-            self.send_JSON(session=session)
-        else:
-            self.file_not_found()
+                self.file_not_found()
 
+        except:
+            self.server_error(traceback.format_exc())
 
 class SeleniumProxy(object):
 
