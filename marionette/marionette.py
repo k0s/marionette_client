@@ -13,6 +13,7 @@ class HTMLElement(object):
 
     def __init__(self, marionette, id):
         self.marionette = marionette
+        assert(id is not None)
         self.id = id
 
     def __str__(self):
@@ -26,6 +27,9 @@ class HTMLElement(object):
 
     def find_elements(self, method, target):
         return self.marionette.find_elements(method, target, self.id)
+
+    def get_attribute(self, attribute):
+        return self.marionette._send_message('getElementAttribute', 'value', element=self.id, name=attribute)
 
     def click(self):
         return self.marionette._send_message('clickElement', 'ok', element=self.id)

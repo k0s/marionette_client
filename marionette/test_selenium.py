@@ -97,6 +97,18 @@ if __name__ == '__main__':
     test_find_elements(driver, 'find_elements_by_class_name')
     test_find_elements(driver, 'find_elements_by_css_selector')
 
+    # test WebElement methods
+    element = driver.find_element_by_name('foo')
+    element.click()
+    assert(element.text == TestServer.TEST_GET_TEXT)
+    element.send_keys('Mozilla Firefox')
+    # XXX assert(element.value == TestServer.TEST_GET_VALUE)
+    element.clear()
+    assert(element.is_selected())
+    assert(element.is_enabled())
+    assert(element.is_displayed())
+    assert(element.get_attribute('id') == TestServer.TEST_GET_VALUE)
+
     assert(driver.current_window_handle == TestServer.TEST_CURRENT_WINDOW)
     assert(driver.window_handles == TestServer.TEST_WINDOW_LIST)
     driver.switch_to_window(TestServer.TEST_CURRENT_WINDOW)

@@ -72,12 +72,50 @@ class SeleniumRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         path, body, session, element = self.process_request()
 
-        if path == '/status':
+        if path.startswith('/attribute/'):
+            assert(session)
+            name = path[len('/attribute/'):]
+            marionette_element = HTMLElement(self.server.marionette, element)
+            self.send_JSON(session=session,
+                           value=marionette_element.get_attribute(name))
+        elif path == '/displayed':
+            assert(session)
+            marionette_element = HTMLElement(self.server.marionette, element)
+            self.send_JSON(session=session,
+                           value=marionette_element.displayed())
+        elif path == '/enabled':
+            assert(session)
+            marionette_element = HTMLElement(self.server.marionette, element)
+            self.send_JSON(session=session,
+                           value=marionette_element.enabled())
+        elif path.startswith('/equals/'):
+            assert(session)
+            other = path[len('/equals'):]
+            marionette_element = HTMLElement(self.server.marionette, element)
+            other_element = HTMLElement(self.server.marionette, other)
+            self.send_JSON(session=session,
+                           value=marionette_element.equals(other))
+        elif path == '/selected':
+            assert(session)
+            marionette_element = HTMLElement(self.server.marionette, element)
+            self.send_JSON(session=session,
+                           value=marionette_element.selected())
+        elif path == '/status':
             self.send_JSON(data=self.server.marionette.status())
+        elif path == '/text':
+            assert(session)
+            marionette_element = HTMLElement(self.server.marionette, element)
+            self.send_JSON(session=session,
+                           value=marionette_element.text())
         elif path == '/url':
             assert(session)
             self.send_JSON(value=self.server.marionette.get_url(),
                            session=session)
+        elif path == '/value':
+            assert(session)
+            marionette_element = HTMLElement(self.server.marionette, element)
+            send.send_JSON(session=session,
+                           value=marionette_element.value())
         elif path == '/window_handle':
             assert(session)
             self.send_JSON(session=session,
@@ -97,6 +135,16 @@ class SeleniumRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if path == '/back':
             assert(session)
             assert(self.server.marionette.go_back())
+            self.send_JSON(session=session)
+        elif path == '/clear':
+            assert(session)
+            marionette_element = HTMLElement(self.server.marionette, element)
+            marionette_element.clear()
+            self.send_JSON(session=session)
+        elif path == '/click':
+            assert(session)
+            marionette_element = HTMLElement(self.server.marionette, element)
+            marionette_element.click()
             self.send_JSON(session=session)
         elif path == '/element':
             # find element variants
@@ -145,6 +193,12 @@ class SeleniumRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         elif path == '/url':
             assert(session)
             assert(self.server.marionette.navigate(body['url']))
+            self.send_JSON(session=session)
+        elif path == '/value':
+            assert(session)
+            keys = ''.join(body['value'])
+            marionette_element = HTMLElement(self.server.marionette, element)
+            assert(marionette_element.send_keys(keys))
             self.send_JSON(session=session)
         elif path == '/window':
             assert(session)

@@ -16,6 +16,8 @@ class TestServer(object):
     TEST_EXECUTE_SCRIPT_ARGS = 'testing'
     TEST_FIND_ELEMENT = 'element1'
     TEST_FIND_ELEMENTS = ['element1', 'element2', 'element3']
+    TEST_GET_TEXT = 'first name'
+    TEST_GET_VALUE = 'Mozilla Firefox'
 
     def __init__(self, port):
         self.port = port
@@ -93,14 +95,15 @@ class TestServer(object):
             'findElement': { 'value': self.TEST_FIND_ELEMENT },
             'findElements': { 'values': self.TEST_FIND_ELEMENTS },
             'clickElement': { 'ok': True },
-            'getElementText': { 'value': 'first name' },
+            'getElementText': { 'value': self.TEST_GET_TEXT },
             'sendKeysToElement': { 'ok': True },
-            'getElementValue': { 'value': 'Mozilla Firefox' },
+            'getElementValue': { 'value': self.TEST_GET_VALUE },
             'clearElement': { 'ok': True },
-            'isElementSelected': { 'value': False },
+            'isElementSelected': { 'value': True },
             'elementsEqual': { 'value': True },
             'isElementEnabled': { 'value': True },
             'isElementDisplayed': { 'value': True },
+            'getElementAttribute': { 'value': self.TEST_GET_VALUE },
             'getSessionCapabilities': { 'value': {
                 "cssSelectorsEnabled": True,
                 "browserName": "firefox",
