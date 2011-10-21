@@ -60,7 +60,11 @@ class SeleniumRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         path, body, session, element = self.process_request()
 
-        if path == '/window':
+        if path == '/session':
+            assert(session)
+            assert(self.server.marionette.delete_session())
+            self.send_JSON(session=session)
+        elif path == '/window':
             assert(session)
             assert(self.server.marionette.close_window())
             self.send_JSON(session=session)

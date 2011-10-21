@@ -2,6 +2,12 @@ import json
 import socket
 
 class MarionetteClient(object):
+    """ The Marionette socket client.  This speaks the same protocol
+        as the remote debugger inside Gecko, in which messages are
+        always preceded by the message length and a colon, e.g.,
+        
+        20:{'command': 'test'}
+    """
 
     def __init__(self, addr, port):
         self.addr = addr
@@ -43,6 +49,8 @@ class MarionetteClient(object):
         try:
             self.sock.connect((self.addr, self.port))
         except:
+            # Unset self.sock so that the next attempt to send will cause
+            # another connection attempt.
             self.sock = None
             raise
         hello = self.receive()
@@ -60,5 +68,7 @@ class MarionetteClient(object):
         return response
 
     def close(self):
+        """ Close the socket.
+        """
         self.sock.close()
         self.sock = None
