@@ -74,6 +74,7 @@ class TestServer(object):
         }
     }
 
+    # canned error responses for test messages
     error_responses = {
         'executeScript': { 'error': { 'message': 'JavaScript error', 'status': 17 } },
         'executeAsyncScript': { 'error': { 'message': 'Script timed out', 'status': 28 } },
