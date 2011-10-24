@@ -3,6 +3,7 @@ import json
 import re
 import traceback
 
+from errors import *
 from marionette import Marionette, HTMLElement
 
 class SeleniumRequestServer(BaseHTTPServer.HTTPServer):
@@ -79,6 +80,8 @@ class SeleniumRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             else:
                 self.file_not_found()
 
+        except MarionetteException, e:
+            self.send_JSON(data={'status': e.status}, value={'message': e.message})
         except:
             self.server_error(traceback.format_exc())
 
@@ -225,6 +228,8 @@ class SeleniumRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             else:
                 self.file_not_found()
 
+        except MarionetteException, e:
+            self.send_JSON(data={'status': e.status}, value={'message': e.message})
         except:
             self.server_error(traceback.format_exc())
 

@@ -1,4 +1,5 @@
 from client import MarionetteClient
+from errors import *
 
 class HTMLElement(object):
 
@@ -85,7 +86,31 @@ class Marionette(object):
             self._handle_error(response)
 
     def _handle_error(self, response):
-        raise Exception(response)
+        if 'error' in response and isinstance(response['error'], dict):
+            status = response['error'].get('status', 500)
+            message = response['error'].get('message')
+            stacktrace = response['error'].get('stacktrace')
+            # status numbers come from 
+            # http://code.google.com/p/selenium/wiki/JsonWireProtocol#Response_Status_Codes
+            if status == 7:
+                raise NoSuchElementException(message=message, status=status, stacktrace=stacktrace)
+            elif status == 10:
+                raise StaleElementException(message=message, status=status, stacktrace=stacktrace)
+            elif status == 11:
+                raise ElementNotVisibleException(message=message, status=status, stacktrace=stacktrace)
+            elif status == 17:
+                raise JavascriptException(message=message, status=status, stacktrace=stacktrace)
+            elif status == 19:
+                raise XPathLookupException(message=message, status=status, stacktrace=stacktrace)
+            elif status == 21:
+                raise TimeoutException(message=message, status=status, stacktrace=stacktrace)
+            elif status == 23:
+                raise NoSuchWindowException(message=message, status=status, stacktrace=stacktrace)
+            elif status == 28:
+                raise ScriptTimeoutException(message=message, status=status, stacktrace=stacktrace)
+            else:
+                raise MarionetteException(message=message, status=status, stacktrace=stacktrace)
+        raise MarionetteException(message=response, status=500)
 
     def status(self):
         return self._send_message('getStatus', 'value')

@@ -19,6 +19,72 @@ class TestServer(object):
     TEST_GET_TEXT = 'first name'
     TEST_GET_VALUE = 'Mozilla Firefox'
 
+    # canned responses for test messages
+    test_responses = {
+        'newSession': { 'value': 'a65bef90b145' },
+        'deleteSession': { 'ok': True },
+        'setScriptTimeout': { 'ok': True },
+        'setSearchTimeout': { 'ok': True },
+        'getWindow': { 'value': TEST_CURRENT_WINDOW },
+        'getWindows': { 'values': TEST_WINDOW_LIST },
+        'closeWindow': { 'ok': True },
+        'switchToWindow': { 'ok': True },
+        'getUrl' : { 'value': TEST_URL },
+        'goUrl': { 'ok': True },
+        'goBack': { 'ok': True },
+        'goForward': { 'ok': True },
+        'refresh': { 'ok': True },
+        'executeScript': { 'value': TEST_EXECUTE_RETURN_VALUE },
+        'executeAsyncScript': { 'value': TEST_EXECUTE_RETURN_VALUE },
+        'findElement': { 'value': TEST_FIND_ELEMENT },
+        'findElements': { 'values': TEST_FIND_ELEMENTS },
+        'clickElement': { 'ok': True },
+        'getElementText': { 'value': TEST_GET_TEXT },
+        'sendKeysToElement': { 'ok': True },
+        'getElementValue': { 'value': TEST_GET_VALUE },
+        'clearElement': { 'ok': True },
+        'isElementSelected': { 'value': True },
+        'elementsEqual': { 'value': True },
+        'isElementEnabled': { 'value': True },
+        'isElementDisplayed': { 'value': True },
+        'getElementAttribute': { 'value': TEST_GET_VALUE },
+        'getSessionCapabilities': { 'value': {
+            "cssSelectorsEnabled": True,
+            "browserName": "firefox",
+            "handlesAlerts": True,
+            "javascriptEnabled": True,
+            "nativeEvents": True,
+            "platform": 'linux',
+            "takeScreenshot": False,
+            "version": "10.1"
+            }
+        },
+        'getStatus': { 'value': {
+            "os": {
+                "arch": "x86",
+                "name": "linux",
+                "version": "unknown"
+                },
+            "build": {
+                "revision": "unknown",
+                "time": "unknown",
+                "version": "unknown"
+                }
+            }
+        }
+    }
+
+    error_responses = {
+        'executeScript': { 'error': { 'message': 'JavaScript error', 'status': 17 } },
+        'executeAsyncScript': { 'error': { 'message': 'Script timed out', 'status': 28 } },
+        'findElement': { 'error': { 'message': 'Element not found', 'status': 7 } },
+        'findElements': { 'error': { 'message': 'XPath is invalid', 'status': 19 } },
+        'closeWindow': { 'error': { 'message': 'No such window', 'status': 23 } },
+        'getWindow': { 'error': { 'message': 'No such window', 'status': 23 } },
+        'clickElement': { 'error': { 'message': 'Element no longer exists', 'status': 10 } },
+        'sendKeysToElement': { 'error': { 'message': 'Element is not visible on the page', 'status': 11 } }
+    }
+
     def __init__(self, port):
         self.port = port
 
@@ -27,6 +93,7 @@ class TestServer(object):
         self.srvsock.bind(("", port))
         self.srvsock.listen(5)
         self.descriptors = [self.srvsock]
+        self.responses = self.test_responses
         print 'TestServer started on port %s' % port
 
     def _recv_n_bytes(self, sock, n):
@@ -75,68 +142,20 @@ class TestServer(object):
     def process_command(self, data):
         command = data['command']
 
-        # canned responses for test messages
-        responses = {
-            'newSession': { 'value': 'a65bef90b145' },
-            'deleteSession': { 'ok': True },
-            'setScriptTimeout': { 'ok': True },
-            'setSearchTimeout': { 'ok': True },
-            'getWindow': { 'value': self.TEST_CURRENT_WINDOW },
-            'getWindows': { 'values': self.TEST_WINDOW_LIST },
-            'closeWindow': { 'ok': True },
-            'switchToWindow': { 'ok': True },
-            'getUrl' : { 'value': self.TEST_URL },
-            'goUrl': { 'ok': True },
-            'goBack': { 'ok': True },
-            'goForward': { 'ok': True },
-            'refresh': { 'ok': True },
-            'executeScript': { 'value': self.TEST_EXECUTE_RETURN_VALUE },
-            'executeAsyncScript': { 'value': self.TEST_EXECUTE_RETURN_VALUE },
-            'findElement': { 'value': self.TEST_FIND_ELEMENT },
-            'findElements': { 'values': self.TEST_FIND_ELEMENTS },
-            'clickElement': { 'ok': True },
-            'getElementText': { 'value': self.TEST_GET_TEXT },
-            'sendKeysToElement': { 'ok': True },
-            'getElementValue': { 'value': self.TEST_GET_VALUE },
-            'clearElement': { 'ok': True },
-            'isElementSelected': { 'value': True },
-            'elementsEqual': { 'value': True },
-            'isElementEnabled': { 'value': True },
-            'isElementDisplayed': { 'value': True },
-            'getElementAttribute': { 'value': self.TEST_GET_VALUE },
-            'getSessionCapabilities': { 'value': {
-                "cssSelectorsEnabled": True,
-                "browserName": "firefox",
-                "handlesAlerts": True,
-                "javascriptEnabled": True,
-                "nativeEvents": True,
-                "platform": 'linux',
-                "takeScreenshot": False,
-                "version": "10.1"
-                }
-            },
-            'getStatus': { 'value': {
-                "os": {
-                    "arch": "x86",
-                    "name": "linux",
-                    "version": "unknown"
-                    },
-                "build": {
-                    "revision": "unknown",
-                    "time": "unknown",
-                    "version": "unknown"
-                    }
-                }
-            }
-        }
+        if command == 'use_test_responses':
+            self.responses = self.test_responses
+            return { 'ok': True }
+        elif command == 'use_error_responses':
+            self.responses = self.error_responses
+            return { 'ok': True }
 
-        if command in responses:
-            response = responses[command]
+        if command in self.responses:
+            response = self.responses[command]
         else:
-            response = { 'error': 'unknown command' }
+            response = { 'error': { 'message': 'unknown command: %s' % command, 'status': 500} }
 
         if command not in ('newSession', 'getStatus') and 'session' not in data:
-            response = { 'error': 'no session specified' }
+            response = { 'error': { 'message': 'no session specified', 'status': 500 } }
 
         return response
 

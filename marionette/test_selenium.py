@@ -2,6 +2,7 @@ import threading
 
 try:
     from selenium import webdriver
+    from selenium.common.exceptions import *
     from selenium.webdriver.remote.webelement import WebElement
 except:
     print 'requires selenium Python bindings; pip install selenium'
@@ -108,6 +109,58 @@ if __name__ == '__main__':
     assert(element.is_enabled())
     assert(element.is_displayed())
     assert(element.get_attribute('id') == TestServer.TEST_GET_VALUE)
+
+    # make the server return error responses so we can test them
+    server.responses = server.error_responses
+
+    # test exception handling
+    try:
+        driver.execute_async_script(TestServer.TEST_EXECUTE_SCRIPT)
+        assert(False)
+    except TimeoutException:
+        # the Selenium Python driver maps SCRIPT_TIMEOUT to TIMEOUT
+        pass
+
+    try:
+        driver.execute_script(TestServer.TEST_EXECUTE_SCRIPT)
+        assert(False)
+    except WebDriverException:
+        # the Selenium Python driver doesn't specifically support JAVASCRIPT_ERROR
+        pass
+
+    try:
+        driver.find_element_by_name('foo')
+        assert(False)
+    except NoSuchElementException:
+        pass
+
+    try:
+        driver.find_elements_by_name('foo')
+        assert(False)
+    except WebDriverException:
+        # the Selenium Python driver doesn't specifically support XPATH_LOOKUP_ERROR
+        pass
+
+    try:
+        driver.close()
+        assert(False)
+    except NoSuchWindowException:
+        pass
+
+    try:
+        element.click()
+        assert(False)
+    except StaleElementReferenceException:
+        pass
+
+    try:
+        element.send_keys('Mozilla Firefox')
+        assert(False)
+    except ElementNotVisibleException:
+        pass
+
+    # restore normal test responses
+    server.responses = server.test_responses
 
     assert(driver.current_window_handle == TestServer.TEST_CURRENT_WINDOW)
     assert(driver.window_handles == TestServer.TEST_WINDOW_LIST)
