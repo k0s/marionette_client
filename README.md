@@ -32,7 +32,7 @@ will likely be added.
 No special requirements, unless you're using the Selenium proxy, in which
 case you'll need to install the Selenium Python bindings using:
 
-  pip install selenium
+    pip install selenium
 
 ## Writing Tests Using the Marionette Client
 
