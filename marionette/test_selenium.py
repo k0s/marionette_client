@@ -62,12 +62,14 @@ if __name__ == '__main__':
                               desired_capabilities=webdriver.DesiredCapabilities.FIREFOX)
     assert(driver)
 
+    # test navigation methods
     driver.get(TestServer.TEST_URL)
     assert(driver.current_url == TestServer.TEST_URL)
     driver.back()
     driver.forward()
     driver.refresh()
 
+    # test script methods
     driver.set_script_timeout(10) # in selenium the number is in seconds
     driver.implicitly_wait(10)    # ditto
 
@@ -103,7 +105,6 @@ if __name__ == '__main__':
     element.click()
     assert(element.text == TestServer.TEST_GET_TEXT)
     element.send_keys('Mozilla Firefox')
-    # XXX assert(element.value == TestServer.TEST_GET_VALUE)
     element.clear()
     assert(element.is_selected())
     assert(element.is_enabled())
@@ -159,12 +160,26 @@ if __name__ == '__main__':
     except ElementNotVisibleException:
         pass
 
+    try:
+        driver.switch_to_frame('aframe')
+        assert(False)
+    except NoSuchFrameException:
+        pass
+
     # restore normal test responses
     server.responses = server.test_responses
 
+    # test window methods
     assert(driver.current_window_handle == TestServer.TEST_CURRENT_WINDOW)
     assert(driver.window_handles == TestServer.TEST_WINDOW_LIST)
     driver.switch_to_window(TestServer.TEST_CURRENT_WINDOW)
+
+    # test frame methods
+    driver.switch_to_frame('aframe') # by name or id
+    driver.switch_to_frame(1)        # by index
+    driver.switch_to_frame(element)  # by element reference
+    driver.switch_to_frame(None)     # null; switch to default frame
+
     driver.close() # this is close_window
 
     print 'Tests complete!'

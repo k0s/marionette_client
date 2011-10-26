@@ -29,3 +29,6 @@ class ScriptTimeoutException(MarionetteException):
 
 class ElementNotVisibleException(MarionetteException):
     pass
+
+class NoSuchFrameException(MarionetteException):
+    pass

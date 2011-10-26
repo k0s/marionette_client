@@ -94,6 +94,8 @@ class Marionette(object):
             # http://code.google.com/p/selenium/wiki/JsonWireProtocol#Response_Status_Codes
             if status == 7:
                 raise NoSuchElementException(message=message, status=status, stacktrace=stacktrace)
+            elif status == 8:
+                raise NoSuchFrameException(message=message, status=status, stacktrace=stacktrace)
             elif status == 10:
                 raise StaleElementException(message=message, status=status, stacktrace=stacktrace)
             elif status == 11:
@@ -153,9 +155,16 @@ class Marionette(object):
         response = self._send_message('closeWindow', 'ok', value=window_id)
         return response
 
-    def switch_window(self, window_id):
+    def switch_to_window(self, window_id):
         response = self._send_message('switchToWindow', 'ok', value=window_id)
         self.window = window_id
+        return response
+
+    def switch_to_frame(self, frame=None):
+        if isinstance(frame, HTMLElement):
+            response = self._send_message('switchToFrame', 'ok', element=frame.id)
+        else:
+            response = self._send_message('switchToFrame', 'ok', value=frame)
         return response
 
     def get_url(self):

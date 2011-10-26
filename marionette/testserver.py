@@ -29,6 +29,7 @@ class TestServer(object):
         'getWindows': { 'values': TEST_WINDOW_LIST },
         'closeWindow': { 'ok': True },
         'switchToWindow': { 'ok': True },
+        'switchToFrame': { 'ok': True },
         'getUrl' : { 'value': TEST_URL },
         'goUrl': { 'ok': True },
         'goBack': { 'ok': True },
@@ -83,7 +84,8 @@ class TestServer(object):
         'closeWindow': { 'error': { 'message': 'No such window', 'status': 23 } },
         'getWindow': { 'error': { 'message': 'No such window', 'status': 23 } },
         'clickElement': { 'error': { 'message': 'Element no longer exists', 'status': 10 } },
-        'sendKeysToElement': { 'error': { 'message': 'Element is not visible on the page', 'status': 11 } }
+        'sendKeysToElement': { 'error': { 'message': 'Element is not visible on the page', 'status': 11 } },
+        'switchToFrame': { 'error': { 'message': 'No such frame', 'status': 8 } }
     }
 
     def __init__(self, port):

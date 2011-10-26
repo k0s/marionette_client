@@ -197,6 +197,13 @@ class SeleniumRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 assert(session)
                 assert(self.server.marionette.go_forward())
                 self.send_JSON(session=session)
+            elif path == '/frame':
+                assert(session)
+                frame = body['id']
+                if isinstance(frame, dict) and 'ELEMENT' in frame:
+                    frame = HTMLElement(self.server.marionette, frame['ELEMENT'])
+                assert(self.server.marionette.switch_to_frame(frame))
+                self.send_JSON(session=session)
             elif path == '/refresh':
                 assert(session)
                 assert(self.server.marionette.refresh())
@@ -225,7 +232,7 @@ class SeleniumRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.send_JSON(session=session)
             elif path == '/window':
                 assert(session)
-                assert(self.server.marionette.switch_window(body['name']))
+                assert(self.server.marionette.switch_to_window(body['name']))
                 self.send_JSON(session=session)
             else:
                 self.file_not_found()
